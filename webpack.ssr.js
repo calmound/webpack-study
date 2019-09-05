@@ -1,5 +1,3 @@
-
-
 const path = require('path')
 const glob = require('glob')
 const webpack = require('webpack')
@@ -13,13 +11,14 @@ const setMPA = () => {
   const entry = {}
   const htmlWebpackPlugins = []
 
-  const entryFiles = glob.sync(path.join(__dirname, './src/*/index.js'))
+  const entryFiles = glob.sync(path.join(__dirname, './src/*/index-server.js'))
 
   Object.keys(entryFiles).map(index => {
     const entryFile = entryFiles[index]
 
-    const match = entryFile.match(/src\/(.*)\/index\.js/)
+    const match = entryFile.match(/src\/(.*)\/index-server\.js/)
     const pageName = match && match[1]
+
     if (pageName) {
       entry[pageName] = entryFile
       htmlWebpackPlugins.push(
@@ -39,7 +38,6 @@ const setMPA = () => {
         })
       )
     }
-
   })
 
   return {
@@ -49,7 +47,6 @@ const setMPA = () => {
 }
 
 const { entry, htmlWebpackPlugins } = setMPA()
-
 module.exports = {
   entry: entry,
   output: {
@@ -57,7 +54,7 @@ module.exports = {
     path: path.join(__dirname, 'dist'),
     libraryTarget: 'umd'
   },
-  mode: 'production',
+  mode: 'none',
   module: {
     rules: [
       {

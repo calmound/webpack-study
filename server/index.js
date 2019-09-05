@@ -1,34 +1,30 @@
 if (typeof window === 'undefined') {
-    global.window = {}
+  global.window = {}
 }
-
-
 
 const express = require('express')
 
 const { renderToString } = require('react-dom/server')
 const SSR = require('../dist/search-server')
+console.log(SSR)
+const server = port => {
+  const app = express()
+  app.use(express.static('dist'))
+  app.get('/search', (req, res) => {
+    const html = renderMarkup(renderToString(SSR))
+    res.status(200).send(html)
+  })
 
-
-
-const server = (port) => {
-    const app = express()
-    app.use(express.static('dist'))
-    app.get('/search', (req, res) => {
-        const html = renderMarkup(renderToString(SSR))
-        res.status(200).send(html)
-    })
-
-    app.listen(port, () => {
-        console.log('300000000000000000')
-    })
+  app.listen(port, () => {
+    console.log('300000000000000000')
+  })
 }
 
 server(process.env.PORT || 3000)
 
-
-const renderMarkup = (str) => {
-    return `<!DOCTYPE html>
+const renderMarkup = str => {
+  console.log(str)
+  return `<!DOCTYPE html>
     <html lang="en">
     
     <head>
