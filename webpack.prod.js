@@ -6,6 +6,7 @@ const OptimizeCssAssetWebpackPlugin = require('optimize-css-assets-webpack-plugi
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const { CleanWebpackPlugin } = require('clean-webpack-plugin')
 const HtmlWebpackExternalsPlugin = require('html-webpack-externals-plugin')
+const friendlyErrorsWebpackPlugin = require('friendly-errors-webpack-plugin')
 
 const setMPA = () => {
   const entry = {}
@@ -125,7 +126,7 @@ module.exports = {
       assetNameRegExp: /\.css$/g,
       cssProcessor: require('cssnano')
     }),
-    new CleanWebpackPlugin()
+    new CleanWebpackPlugin(),
     // new HtmlWebpackExternalsPlugin({
     //   externals: [
     //     {
@@ -140,6 +141,15 @@ module.exports = {
     //     }
     //   ]
     // })
+    new friendlyErrorsWebpackPlugin(),
+    function() {
+      this.hooks.done.tap('done', stats => {
+        if (stats.compilation.errors && process.argv.indexOf('--watch') == -1) {
+          console.log('build error')
+          process.exit(1)
+        }
+      })
+    }
   ].concat(htmlWebpackPlugins),
   optimization: {
     splitChunks: {
@@ -157,5 +167,6 @@ module.exports = {
   devServer: {
     contentBase: './dist',
     hot: true
-  }
+  },
+  stats: 'errors-only'
 }

@@ -33,7 +33,7 @@ const setMPA = () => {
             preserveLineBreaks: true,
             minifyCSS: true,
             minifyJS: true,
-            removeComments: true
+            removeComments: false
           }
         })
       )
