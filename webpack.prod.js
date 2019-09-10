@@ -1,3 +1,4 @@
+const HappyPack = require('happypack')
 const path = require('path')
 const glob = require('glob')
 const webpack = require('webpack')
@@ -7,6 +8,10 @@ const HtmlWebpackPlugin = require('html-webpack-plugin')
 const { CleanWebpackPlugin } = require('clean-webpack-plugin')
 const HtmlWebpackExternalsPlugin = require('html-webpack-externals-plugin')
 const friendlyErrorsWebpackPlugin = require('friendly-errors-webpack-plugin')
+const SpeedMeasureWebpackPlugin = require('speed-measure-webpack-plugin')
+const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer')
+
+const smp = new SpeedMeasureWebpackPlugin()
 
 const setMPA = () => {
   const entry = {}
@@ -47,18 +52,23 @@ const setMPA = () => {
 
 const { entry, htmlWebpackPlugins } = setMPA()
 
-module.exports = {
+module.exports = smp.wrap({
   entry: entry,
   output: {
     filename: '[name]_[chunkhash:8].js',
     path: path.join(__dirname, 'dist')
   },
   mode: 'production',
+  performance: { hints: false },
   module: {
     rules: [
       {
         test: /.js$/,
-        use: ['babel-loader']
+        include: path.resolve('src'),
+        use: [
+          // 'babel-loader',
+          'happypack/loader'
+        ]
         // , 'eslint-loader'
       },
       {
@@ -91,10 +101,6 @@ module.exports = {
         ]
       },
       {
-        test: /.(png|jpg|gif|jpeg|svg)$/,
-        use: ['file-loader']
-      },
-      {
         test: /.(woff|woff2|eot|ttf|otf)$/,
         use: [
           {
@@ -111,7 +117,8 @@ module.exports = {
           {
             loader: 'file-loader',
             options: {
-              name: '[name]_[hash:8].[ext]'
+              name: '[name]_[hash:8].[ext]',
+              limit: 8192
             }
           }
         ]
@@ -127,6 +134,10 @@ module.exports = {
       cssProcessor: require('cssnano')
     }),
     new CleanWebpackPlugin(),
+    // new BundleAnalyzerPlugin(),
+    new HappyPack({
+      loaders: ['babel-loader']
+    }),
     // new HtmlWebpackExternalsPlugin({
     //   externals: [
     //     {
@@ -141,10 +152,10 @@ module.exports = {
     //     }
     //   ]
     // })
-    new friendlyErrorsWebpackPlugin(),
+    // new friendlyErrorsWebpackPlugin(),
     function() {
       this.hooks.done.tap('done', stats => {
-        if (stats.compilation.errors && process.argv.indexOf('--watch') == -1) {
+        if (stats.compilation.errors.length > 1 && process.argv.indexOf('--watch') == -1) {
           console.log('build error')
           process.exit(1)
         }
@@ -167,6 +178,6 @@ module.exports = {
   devServer: {
     contentBase: './dist',
     hot: true
-  },
-  stats: 'errors-only'
-}
+  }
+  // stats: 'errors-only'
+})
